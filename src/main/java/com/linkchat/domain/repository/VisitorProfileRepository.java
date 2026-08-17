@@ -1,0 +1,1 @@
+package com.linkchat.domain.repository; import com.linkchat.domain.model.VisitorProfile; import java.util.*; public interface VisitorProfileRepository { Optional<VisitorProfile> findByBrowserTokenHash(String hash); VisitorProfile save(VisitorProfile v); Optional<VisitorProfile> findById(UUID id); }

@@ -1,0 +1,5 @@
+com\linkchat\integration\ChatApiIntegrationTest$BrowserTokenRequest.class
+com\linkchat\integration\ChatApiIntegrationTest.class
+com\linkchat\application\FileStorageServiceTest.class
+com\linkchat\application\TokenServiceTest.class
+com\linkchat\application\ChatApplicationServiceTest.class

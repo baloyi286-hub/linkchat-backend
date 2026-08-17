@@ -1,0 +1,108 @@
+package com.linkchat.infrastructure.persistence;
+
+import com.linkchat.domain.model.*;
+import com.linkchat.domain.repository.*;
+import org.springframework.stereotype.Repository;
+import java.util.*;
+
+@Repository
+class AccountRepositoryAdapter implements AccountRepository {
+    private final AccountJpaRepository repo;
+
+    AccountRepositoryAdapter(AccountJpaRepository r) {
+        repo = r;
+    }
+
+    @Override
+    public Account save(Account account) {
+        return repo.save(account);
+    }
+
+    public Optional<Account> findByInviteCode(String c) {
+        return repo.findByInviteCode(c);
+    }
+
+    public Optional<Account> findById(UUID id) {
+        return repo.findById(id);
+    }
+}
+
+@Repository
+class VisitorProfileRepositoryAdapter implements VisitorProfileRepository {
+    private final VisitorJpaRepository repo;
+
+    VisitorProfileRepositoryAdapter(VisitorJpaRepository r) {
+        repo = r;
+    }
+
+    public Optional<VisitorProfile> findByBrowserTokenHash(String h) {
+        return repo.findByBrowserTokenHash(h);
+    }
+
+    public VisitorProfile save(VisitorProfile v) {
+        return repo.save(v);
+    }
+
+    public Optional<VisitorProfile> findById(UUID id) {
+        return repo.findById(id);
+    }
+}
+
+@Repository
+class VisitorImageRepositoryAdapter implements VisitorImageRepository {
+    private final VisitorImageJpaRepository repo;
+
+    VisitorImageRepositoryAdapter(VisitorImageJpaRepository r) {
+        repo = r;
+    }
+
+    public VisitorImage save(VisitorImage i) {
+        return repo.save(i);
+    }
+
+    public List<VisitorImage> findByVisitorId(UUID id) {
+        return repo.findByVisitorId(id);
+    }
+
+    public void deleteByVisitorId(UUID id) {
+        repo.deleteByVisitorId(id);
+    }
+}
+
+@Repository
+class ConversationRepositoryAdapter implements ConversationRepository {
+    private final ConversationJpaRepository repo;
+
+    ConversationRepositoryAdapter(ConversationJpaRepository r) {
+        repo = r;
+    }
+
+    public Conversation save(Conversation c) {
+        return repo.save(c);
+    }
+
+    public Optional<Conversation> findById(UUID id) {
+        return repo.findById(id);
+    }
+
+    public List<Conversation> findByOwnerIdOrderByCreatedAtDesc(UUID id) {
+        return repo.findByOwnerIdOrderByCreatedAtDesc(id);
+    }
+}
+
+@Repository
+class ChatMessageRepositoryAdapter implements ChatMessageRepository {
+    private final ChatMessageJpaRepository repo;
+
+    ChatMessageRepositoryAdapter(ChatMessageJpaRepository r) {
+        repo = r;
+    }
+
+    public ChatMessage save(ChatMessage m) {
+        return repo.save(m);
+    }
+
+    public List<ChatMessage> findByConversationIdOrderByCreatedAtAsc(UUID id) {
+        return repo.findByConversationIdOrderByCreatedAtAsc(id);
+    }
+}

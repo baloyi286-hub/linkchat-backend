@@ -1,0 +1,1 @@
+package com.linkchat.domain.repository; import com.linkchat.domain.model.VisitorImage; import java.util.*; public interface VisitorImageRepository { VisitorImage save(VisitorImage i); List<VisitorImage> findByVisitorId(UUID visitorId); void deleteByVisitorId(UUID visitorId); }

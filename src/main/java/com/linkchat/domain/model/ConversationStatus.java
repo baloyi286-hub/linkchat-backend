@@ -1,0 +1,1 @@
+package com.linkchat.domain.model; public enum ConversationStatus { OPEN, CLOSED }
