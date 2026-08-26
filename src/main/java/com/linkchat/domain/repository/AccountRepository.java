@@ -5,8 +5,7 @@ import java.util.*;
 
 public interface AccountRepository {
     Optional<Account> findByInviteCode(String code);
-
+    Optional<Account> findByAuthSubject(String authSubject);
     Optional<Account> findById(UUID id);
-
     Account save(Account account);
 }
