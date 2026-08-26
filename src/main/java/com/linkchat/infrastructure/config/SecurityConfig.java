@@ -14,27 +14,25 @@ import java.util.List;
 public class SecurityConfig {
     @Bean
     SecurityFilterChain security(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+        return http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/me/**", "/api/owners/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/invites").authenticated()
                         .anyRequest().permitAll())
-                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
-                .build();
+                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults())).build();
     }
 
     @Bean
     JwtDecoder jwtDecoder(
             @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+            @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri,
             @Value("${app.auth.audience}") String audience) {
-        NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation(issuer);
-        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuer);
-        OAuth2TokenValidator<Jwt> withAudience = jwt -> jwt.getAudience().contains(audience)
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(issuer);
+        OAuth2TokenValidator<Jwt> audienceValidator = jwt -> jwt.getAudience().contains(audience)
                 ? OAuth2TokenValidatorResult.success()
                 : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Required audience is missing", null));
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(issuerValidator, audienceValidator));
         return decoder;
     }
 
