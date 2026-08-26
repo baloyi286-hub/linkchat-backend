@@ -3,15 +3,17 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-
   flyway:
     enabled: true
-
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://example.invalid/}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -23,6 +25,8 @@ server:
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   upload-dir: ${UPLOAD_DIR:uploads}
+  auth:
+    audience: ${AUTH0_AUDIENCE:https://api.linkchat.local}
 
 logging:
   level:
@@ -30,6 +34,5 @@ logging:
     com.linkchat: DEBUG
     org.flywaydb: DEBUG
     org.springframework.boot.autoconfigure.flyway: DEBUG
-
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId:-no-request}] [%thread] %logger{36} - %msg%n"
