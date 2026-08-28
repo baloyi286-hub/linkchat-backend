@@ -12,77 +12,54 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InviteApplicationService implements CreateInviteLinkUseCase, GetInviteUseCase {
-
     private static final Logger log = LoggerFactory.getLogger(InviteApplicationService.class);
     private static final int MAX_CODE_ATTEMPTS = 10;
-
     private final AccountRepository accounts;
     private final InviteCodeGenerator inviteCodeGenerator;
 
-    public InviteApplicationService(
-            AccountRepository accounts,
-            InviteCodeGenerator inviteCodeGenerator) {
+    public InviteApplicationService(AccountRepository accounts, InviteCodeGenerator inviteCodeGenerator) {
         this.accounts = accounts;
         this.inviteCodeGenerator = inviteCodeGenerator;
     }
 
     @Override
     @Transactional
-    public InviteLinkView create(String displayName) {
+    public InviteLinkView create(String displayName, String authSubject) {
+        if (authSubject == null || authSubject.isBlank()) throw new BusinessRuleException("Authenticated owner is required");
+        var existing = accounts.findByAuthSubject(authSubject);
+        if (existing.isPresent()) return toLinkView(existing.get());
+
         String normalizedName = validateAndNormalizeName(displayName);
-        String inviteCode = generateUniqueInviteCode();
-
-        Account owner = Account.create(
-                normalizedName,
-                inviteCode);
-
-        Account savedOwner = accounts.save(owner);
-
-        log.info(
-                "Invite link created. ownerId={} inviteCode={}",
-                savedOwner.getId(),
-                savedOwner.getInviteCode());
-
-        return new InviteLinkView(
-                savedOwner.getId(),
-                savedOwner.getDisplayName(),
-                savedOwner.getInviteCode(),
-                "/i/" + savedOwner.getInviteCode());
+        Account savedOwner = accounts.save(Account.create(normalizedName, generateUniqueInviteCode(), authSubject));
+        log.info("Owner account created. ownerId={} inviteCode={}", savedOwner.getId(), savedOwner.getInviteCode());
+        return toLinkView(savedOwner);
     }
 
     @Override
     @Transactional(readOnly = true)
     public InviteView get(String inviteCode) {
-        if (inviteCode == null || inviteCode.isBlank()) {
-            throw new BusinessRuleException("Invite code is required");
-        }
-
-        Account savedOwner = accounts.findByInviteCode(inviteCode.trim())
+        if (inviteCode == null || inviteCode.isBlank()) throw new BusinessRuleException("Invite code is required");
+        Account owner = accounts.findByInviteCode(inviteCode.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Invite link not found"));
+        return new InviteView(owner.getId(), owner.getDisplayName(), owner.getInviteCode());
+    }
 
-        return new InviteView(savedOwner.getId(), savedOwner.getDisplayName(), savedOwner.getInviteCode());
+    private InviteLinkView toLinkView(Account owner) {
+        return new InviteLinkView(owner.getId(), owner.getDisplayName(), owner.getInviteCode(), "/i/" + owner.getInviteCode());
     }
 
     private String validateAndNormalizeName(String displayName) {
-        if (displayName == null || displayName.isBlank()) {
-            throw new BusinessRuleException("Display name is required");
-        }
-
+        if (displayName == null || displayName.isBlank()) throw new BusinessRuleException("Display name is required");
         String normalized = displayName.trim();
-        if (normalized.length() > 100) {
-            throw new BusinessRuleException("Display name cannot exceed 100 characters");
-        }
+        if (normalized.length() > 100) throw new BusinessRuleException("Display name cannot exceed 100 characters");
         return normalized;
     }
 
     private String generateUniqueInviteCode() {
         for (int attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
             String candidate = inviteCodeGenerator.generate();
-            if (accounts.findByInviteCode(candidate).isEmpty()) {
-                return candidate;
-            }
+            if (accounts.findByInviteCode(candidate).isEmpty()) return candidate;
         }
-
         throw new BusinessRuleException("Could not generate a unique invite link. Please try again.");
     }
 }

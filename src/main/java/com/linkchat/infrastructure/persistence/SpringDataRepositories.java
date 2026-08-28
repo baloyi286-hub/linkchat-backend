@@ -6,6 +6,7 @@ import java.util.*;
 
 interface AccountJpaRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByInviteCode(String inviteCode);
+    Optional<Account> findByAuthSubject(String authSubject);
 }
 
 interface VisitorJpaRepository extends JpaRepository<VisitorProfile, UUID> {
@@ -14,7 +15,6 @@ interface VisitorJpaRepository extends JpaRepository<VisitorProfile, UUID> {
 
 interface VisitorImageJpaRepository extends JpaRepository<VisitorImage, UUID> {
     List<VisitorImage> findByVisitorId(UUID visitorId);
-
     void deleteByVisitorId(UUID visitorId);
 }
 
