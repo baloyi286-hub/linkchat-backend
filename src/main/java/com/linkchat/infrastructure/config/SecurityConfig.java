@@ -39,7 +39,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource(@Value("${app.frontend-url}") String frontend) {
         var c = new CorsConfiguration();
-        c.setAllowedOrigins(List.of("http://localhost:5173", frontend));
+        c.setAllowedOrigins(List.of("http://localhost:5173", frontend, "https://linkchat-frontend-wst7-*.vercel.app"));
         c.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         c.setAllowedHeaders(List.of("*"));
         c.setAllowCredentials(true);
