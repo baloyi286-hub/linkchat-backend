@@ -42,6 +42,8 @@ public class ChatSocketController {
 
         if (senderType == SenderType.VISITOR) {
             notifications.notifyOwnerOfVisitorMessage(conversationId, saved.body());
+        } else {
+            notifications.notifyVisitorOfOwnerMessage(conversationId, saved.body());
         }
 
         log.debug("WebSocket message published. conversationId={} messageId={}", conversationId, saved.id());
