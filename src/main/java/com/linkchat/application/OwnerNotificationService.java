@@ -69,7 +69,7 @@ public class OwnerNotificationService {
                 owner.getId(), subscription.getId());
     }
 
-    @Async
+    @Async("notificationExecutor")
     public void notifyOwnerOfVisitorMessage(UUID conversationId, String body) {
         FirebaseMessaging messaging = messagingProvider.getIfAvailable();
         if (messaging == null) {
@@ -95,8 +95,6 @@ public class OwnerNotificationService {
                 preview = preview.substring(0, 117) + "...";
             }
 
-            // Open the authenticated owner dashboard rather than a cold chat route.
-            // The chat route currently relies on sessionStorage for role metadata.
             String link = frontendUrl + "/owner/" + owner.getInviteCode()
                     + "?conversation=" + conversationId;
 
