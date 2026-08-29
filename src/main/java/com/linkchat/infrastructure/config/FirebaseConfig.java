@@ -4,10 +4,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 public class FirebaseConfig {
 
     @Bean
-    @ConditionalOnProperty(name = "app.firebase.service-account-json")
+    @ConditionalOnExpression("'${FIREBASE_SERVICE_ACCOUNT_JSON:}' != ''")
     FirebaseMessaging firebaseMessaging(
             @Value("${app.firebase.service-account-json}") String serviceAccountJson,
             @Value("${app.firebase.project-id:}") String projectId) throws Exception {
