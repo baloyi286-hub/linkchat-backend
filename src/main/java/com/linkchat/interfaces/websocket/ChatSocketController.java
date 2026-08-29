@@ -1,6 +1,7 @@
 package com.linkchat.interfaces.websocket;
 
 import com.linkchat.application.ChatApplicationService;
+import com.linkchat.application.OwnerNotificationService;
 import com.linkchat.application.exception.BusinessRuleException;
 import com.linkchat.domain.model.SenderType;
 import org.slf4j.Logger;
@@ -18,10 +19,15 @@ public class ChatSocketController {
     private static final Logger log = LoggerFactory.getLogger(ChatSocketController.class);
 
     private final ChatApplicationService app;
+    private final OwnerNotificationService notifications;
     private final SimpMessagingTemplate broker;
 
-    public ChatSocketController(ChatApplicationService app, SimpMessagingTemplate broker) {
+    public ChatSocketController(
+            ChatApplicationService app,
+            OwnerNotificationService notifications,
+            SimpMessagingTemplate broker) {
         this.app = app;
+        this.notifications = notifications;
         this.broker = broker;
     }
 
@@ -33,6 +39,11 @@ public class ChatSocketController {
         SenderType senderType = parseSenderType(request.senderType());
         var saved = app.send(conversationId, senderType, request.body());
         broker.convertAndSend("/topic/conversations/" + conversationId, saved);
+
+        if (senderType == SenderType.VISITOR) {
+            notifications.notifyOwnerOfVisitorMessage(conversationId, saved.body());
+        }
+
         log.debug("WebSocket message published. conversationId={} messageId={}", conversationId, saved.id());
     }
 
