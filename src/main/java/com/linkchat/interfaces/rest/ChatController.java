@@ -2,6 +2,7 @@ package com.linkchat.interfaces.rest;
 
 import com.linkchat.application.ChatApplicationService;
 import com.linkchat.application.FileStorageService;
+import com.linkchat.application.OwnerNotificationService;
 import com.linkchat.application.exception.BusinessRuleException;
 import com.linkchat.application.exception.ResourceNotFoundException;
 import com.linkchat.domain.model.SenderType;
@@ -38,10 +39,15 @@ public class ChatController {
 
     private final ChatApplicationService app;
     private final FileStorageService storage;
+    private final OwnerNotificationService notifications;
 
-    public ChatController(ChatApplicationService app, FileStorageService storage) {
+    public ChatController(
+            ChatApplicationService app,
+            FileStorageService storage,
+            OwnerNotificationService notifications) {
         this.app = app;
         this.storage = storage;
+        this.notifications = notifications;
     }
 
     public record TokenRequest(@NotBlank(message = "browserToken is required") String browserToken) {
@@ -53,6 +59,11 @@ public class ChatController {
     public record SendRequest(
             @NotBlank(message = "senderType is required") String senderType,
             @NotBlank(message = "body is required") String body) {
+    }
+
+    public record VisitorNotificationRegistration(
+            @NotBlank(message = "browserToken is required") String browserToken,
+            @NotBlank(message = "installationId is required") String installationId) {
     }
 
     @PostMapping("/visitors/lookup")
@@ -69,6 +80,11 @@ public class ChatController {
             @RequestPart(required = false) List<MultipartFile> images,
             @RequestParam(defaultValue = "false") boolean replaceImages) {
         return app.upsertVisitor(browserToken, displayName, images, replaceImages);
+    }
+
+    @PostMapping("/visitors/notifications")
+    public void registerVisitorNotifications(@Valid @RequestBody VisitorNotificationRegistration request) {
+        notifications.registerVisitor(request.browserToken(), request.installationId());
     }
 
     @PostMapping("/invites/{code}/conversations")
