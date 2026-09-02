@@ -1,7 +1,7 @@
 package com.linkchat.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -39,7 +39,7 @@ class ChatApiIntegrationTest {
     }
 
     @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired JsonMapper jsonMapper;
 
     @Test
     void sameVisitorCanCreateTwoIndependentConversationsFromSameInvite() throws Exception {
@@ -54,7 +54,7 @@ class ChatApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayName").value("Integration Visitor"));
 
-        String requestBody = objectMapper.writeValueAsString(new BrowserTokenRequest(token));
+        String requestBody = jsonMapper.writeValueAsString(new BrowserTokenRequest(token));
 
         String firstBody = mockMvc.perform(post("/api/invites/demo/conversations")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,8 +68,8 @@ class ChatApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        JsonNode first = objectMapper.readTree(firstBody);
-        JsonNode second = objectMapper.readTree(secondBody);
+        JsonNode first = jsonMapper.readTree(firstBody);
+        JsonNode second = jsonMapper.readTree(secondBody);
 
         assertThat(first.get("conversationId").asText())
                 .isNotEqualTo(second.get("conversationId").asText());
@@ -80,7 +80,7 @@ class ChatApiIntegrationTest {
     void unknownInviteReturnsStructured404() throws Exception {
         mockMvc.perform(post("/api/invites/not-real/conversations")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new BrowserTokenRequest("some-token"))))
+                        .content(jsonMapper.writeValueAsString(new BrowserTokenRequest("some-token"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
                 .andExpect(jsonPath("$.requestId").isNotEmpty())
