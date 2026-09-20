@@ -15,6 +15,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,8 +69,8 @@ public class ChatController {
     }
 
     @PostMapping("/visitors/lookup")
-    public Object lookup(@Valid @RequestBody TokenRequest request) {
-        return app.lookupVisitor(request.browserToken())
+    public Object lookup(@Valid @RequestBody TokenRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return app.lookupVisitor(request.browserToken(), jwt == null ? null : jwt.getSubject())
                 .<Object>map(visitor -> Map.of("found", true, "visitor", visitor))
                 .orElse(Map.of("found", false));
     }
@@ -78,8 +80,9 @@ public class ChatController {
             @RequestPart String browserToken,
             @RequestPart String displayName,
             @RequestPart(required = false) List<MultipartFile> images,
-            @RequestParam(defaultValue = "false") boolean replaceImages) {
-        return app.upsertVisitor(browserToken, displayName, images, replaceImages);
+            @RequestParam(defaultValue = "false") boolean replaceImages,
+            @AuthenticationPrincipal Jwt jwt) {
+        return app.upsertVisitor(browserToken, displayName, images, replaceImages, jwt == null ? null : jwt.getSubject());
     }
 
     @PostMapping("/visitors/notifications")
