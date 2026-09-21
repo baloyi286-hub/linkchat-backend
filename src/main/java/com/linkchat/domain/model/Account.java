@@ -13,7 +13,7 @@ public class Account {
     @Column(name = "auth_subject", unique = true) private String authSubject;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
     @Column(name = "vault_password_hash") private String vaultPasswordHash;
-    @Column(name = "chat_price", nullable = false) private java.math.BigDecimal chatPrice = java.math.BigDecimal.ZERO;
+    @Column(name = "chat_price", nullable = false) private java.math.BigDecimal chatPrice = new java.math.BigDecimal("25.00");
 
     protected Account() {}
 
@@ -28,7 +28,7 @@ public class Account {
     public String getAuthSubject() { return authSubject; }
     public String getVaultPasswordHash() { return vaultPasswordHash; }
     public void setVaultPasswordHash(String hash) { this.vaultPasswordHash = hash; }
-    public java.math.BigDecimal getChatPrice(){return chatPrice==null?java.math.BigDecimal.ZERO:chatPrice;}
+    public java.math.BigDecimal getChatPrice(){return chatPrice==null?new java.math.BigDecimal("25.00"):chatPrice;}
     public void setChatPrice(java.math.BigDecimal price){this.chatPrice=price;}
 
     public static Account create(String displayName, String inviteCode) { return create(displayName, inviteCode, null); }
