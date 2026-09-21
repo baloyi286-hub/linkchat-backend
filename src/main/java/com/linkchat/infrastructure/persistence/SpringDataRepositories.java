@@ -8,6 +8,7 @@ interface AccountJpaRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByInviteCode(String inviteCode);
     Optional<Account> findByAuthSubject(String authSubject);
 }
+interface OwnerImageJpaRepository extends JpaRepository<OwnerImage, UUID> { List<OwnerImage> findByOwnerId(UUID ownerId); void deleteByOwnerId(UUID ownerId); }
 interface VisitorJpaRepository extends JpaRepository<VisitorProfile, UUID> { Optional<VisitorProfile> findByBrowserTokenHash(String hash); List<VisitorProfile> findByAccountId(UUID accountId); }
 interface VisitorImageJpaRepository extends JpaRepository<VisitorImage, UUID> { List<VisitorImage> findByVisitorId(UUID visitorId); void deleteByVisitorId(UUID visitorId); }
 interface ConversationJpaRepository extends JpaRepository<Conversation, UUID> { List<Conversation> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId); List<Conversation> findByVisitorIdInOrderByCreatedAtDesc(Collection<UUID> visitorIds); }
