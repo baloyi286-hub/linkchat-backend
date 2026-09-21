@@ -2,6 +2,7 @@ package com.linkchat.interfaces.rest;
 
 import com.linkchat.application.invite.CreateInviteLinkUseCase;
 import com.linkchat.application.invite.GetInviteUseCase;
+import com.linkchat.application.owner.OwnerProfileService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 public class InviteController {
     private final CreateInviteLinkUseCase createInviteLink;
     private final GetInviteUseCase getInvite;
+    private final OwnerProfileService profiles;
 
-    public InviteController(CreateInviteLinkUseCase createInviteLink, GetInviteUseCase getInvite) {
-        this.createInviteLink = createInviteLink;
-        this.getInvite = getInvite;
+    public InviteController(CreateInviteLinkUseCase createInviteLink, GetInviteUseCase getInvite, OwnerProfileService profiles) {
+        this.createInviteLink = createInviteLink; this.getInvite = getInvite; this.profiles=profiles;
     }
 
     public record CreateInviteRequest(
@@ -36,4 +37,6 @@ public class InviteController {
 
     @GetMapping("/{code}")
     public GetInviteUseCase.InviteView get(@PathVariable String code) { return getInvite.get(code); }
+    @GetMapping("/{code}/profile")
+    public OwnerProfileService.ProfileView profile(@PathVariable String code){return profiles.publicProfile(code);}
 }
