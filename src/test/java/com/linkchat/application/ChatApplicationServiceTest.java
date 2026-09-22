@@ -55,7 +55,7 @@ class ChatApplicationServiceTest {
         when(visitors.findByBrowserTokenHash("hash")).thenReturn(Optional.of(visitor));
         when(images.findByVisitorId(visitor.getId())).thenReturn(List.of());
 
-        var result = service.lookupVisitor("browser-token");
+        var result = service.lookupVisitor("browser-token", null);
 
         assertThat(result).isPresent();
         assertThat(result.orElseThrow().displayName()).isEqualTo("Nkhenso");
@@ -66,7 +66,7 @@ class ChatApplicationServiceTest {
         List<MultipartFile> files = List.of(
                 image("1.jpg"), image("2.jpg"), image("3.jpg"), image("4.jpg"), image("5.jpg"));
 
-        assertThatThrownBy(() -> service.upsertVisitor("token", "Visitor", files, false))
+        assertThatThrownBy(() -> service.upsertVisitor("token", "Visitor", files, false, null))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessage("Maximum 4 images");
 
@@ -77,7 +77,7 @@ class ChatApplicationServiceTest {
     void upsertVisitorRejectsNonImageFile() {
         MockMultipartFile text = new MockMultipartFile("images", "note.txt", "text/plain", "hello".getBytes());
 
-        assertThatThrownBy(() -> service.upsertVisitor("token", "Visitor", List.of(text), false))
+        assertThatThrownBy(() -> service.upsertVisitor("token", "Visitor", List.of(text), false, null))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessage("Only image files are allowed");
     }
