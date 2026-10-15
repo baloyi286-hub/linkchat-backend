@@ -6,8 +6,19 @@ import org.springframework.stereotype.Service; import org.springframework.transa
  public OwnerProfileService(AccountRepository a,OwnerImageRepositoryFacade i,FileStorageService s){accounts=a;images=i;storage=s;}
  @Transactional(readOnly=true) public ProfileView profile(String subject){return view(owner(subject));}
  @Transactional public ProfileView update(String subject,BigDecimal price,List<MultipartFile> files,boolean replaceImages){Account a=owner(subject);if(price==null||price.compareTo(new BigDecimal("25.00"))<0)throw new BusinessRuleException("Minimum chat price is R25.00");if(price.scale()>2)price=price.setScale(2,java.math.RoundingMode.HALF_UP);a.setChatPrice(price);accounts.save(a);if(replaceImages)images.deleteByOwnerId(a.getId());if(files!=null){long count=files.stream().filter(f->f!=null&&!f.isEmpty()).count();if(count>6)throw new BusinessRuleException("Maximum 6 profile images");for(MultipartFile f:files){if(f==null||f.isEmpty())continue;if(f.getContentType()==null||!f.getContentType().startsWith("image/"))throw new BusinessRuleException("Only image files are allowed");String key=storage.store(f);images.save(new OwnerImage(a.getId(),key,f.getOriginalFilename(),f.getContentType()));}}return view(a);}
+ @Transactional public ProfileView addBlobImage(String subject,String url){
+  Account a=owner(subject);
+  java.net.URI uri;
+  try { uri=java.net.URI.create(url); } catch(Exception e){throw new BusinessRuleException("Invalid image URL");}
+  String host=uri.getHost();
+  if(!"https".equalsIgnoreCase(uri.getScheme()) || host==null || !host.endsWith(".public.blob.vercel-storage.com"))
+    throw new BusinessRuleException("Image must be hosted on Vercel Blob");
+  if(images.findByOwnerId(a.getId()).size()>=6)throw new BusinessRuleException("Maximum 6 profile images");
+  images.save(new OwnerImage(a.getId(),url,"profile-image","image/*"));
+  return view(a);
+ }
  @Transactional(readOnly=true) public ProfileView publicProfile(String code){return view(accounts.findByInviteCode(code).orElseThrow(()->new ResourceNotFoundException("Invite link not found")));}
  private Account owner(String s){return accounts.findByAuthSubject(s).orElseThrow(()->new ResourceNotFoundException("Owner profile not created yet"));}
- private ProfileView view(Account a){return new ProfileView(a.getId(),a.getDisplayName(),a.getInviteCode(),a.getChatPrice(),images.findByOwnerId(a.getId()).stream().map(x->"/api/images/"+x.getStorageKey()).toList());}
+ private ProfileView view(Account a){return new ProfileView(a.getId(),a.getDisplayName(),a.getInviteCode(),a.getChatPrice(),images.findByOwnerId(a.getId()).stream().map(x->x.getStorageKey().startsWith("https://")?x.getStorageKey():"/api/images/"+x.getStorageKey()).toList());}
  public record ProfileView(UUID ownerId,String displayName,String inviteCode,BigDecimal chatPrice,List<String> imageUrls){}
 }
