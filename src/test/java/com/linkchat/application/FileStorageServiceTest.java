@@ -1,40 +1,35 @@
 package com.linkchat.application;
 
 import com.linkchat.application.exception.BusinessRuleException;
+import com.linkchat.application.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.sql.ResultSet;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class FileStorageServiceTest {
-
-    @TempDir
-    Path tempDir;
+    private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
+    private final FileStorageService storage = new FileStorageService(jdbc);
 
     @Test
-    void storeWritesFileInsideConfiguredDirectory() throws Exception {
-        FileStorageService storage = new FileStorageService(tempDir.toString());
-        MockMultipartFile file = new MockMultipartFile("images", "avatar.jpg", "image/jpeg", new byte[]{1, 2, 3});
-
+    void storesImageInDatabase() {
+        var file = new MockMultipartFile("images", "avatar.jpg", "image/jpeg", new byte[]{1, 2, 3});
         String key = storage.store(file);
-
-        Path stored = storage.resolve(key);
-        assertThat(stored).startsWith(tempDir);
-        assertThat(Files.exists(stored)).isTrue();
-        assertThat(Files.readAllBytes(stored)).containsExactly(1, 2, 3);
+        assertThat(key).isNotBlank();
+        verify(jdbc).update(contains("INSERT INTO image_blob"), eq(key), eq("image/jpeg"), aryEq(new byte[]{1, 2, 3}));
     }
 
     @Test
-    void resolveRejectsPathTraversal() {
-        FileStorageService storage = new FileStorageService(tempDir.toString());
+    void rejectsInvalidImageType() {
+        var file = new MockMultipartFile("images", "text.txt", "text/plain", new byte[]{1});
+        assertThatThrownBy(() -> storage.store(file)).isInstanceOf(BusinessRuleException.class);
+    }
 
-        assertThatThrownBy(() -> storage.resolve("../outside.jpg"))
-                .isInstanceOf(BusinessRuleException.class)
-                .hasMessage("Invalid image path");
+    @Test
+    void rejectsInvalidStorageKey() {
+        assertThatThrownBy(() -> storage.load("../outside.jpg")).isInstanceOf(BusinessRuleException.class);
     }
 }
