@@ -10,7 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
@@ -112,15 +112,11 @@ public class ChatController {
 
     @GetMapping("/images/{key}")
     public ResponseEntity<Resource> image(@PathVariable String key) {
-        Path path = storage.resolve(key);
-        if (!Files.exists(path)) {
-            throw new ResourceNotFoundException("Image not found");
-        }
+        var image = storage.load(key);
         log.debug("Serving image. key={}", key);
         return ResponseEntity.ok()
-                .contentType(MediaTypeFactory.getMediaType(path.getFileName().toString())
-                        .orElse(MediaType.APPLICATION_OCTET_STREAM))
-                .body(new FileSystemResource(path));
+                .contentType(MediaType.parseMediaType(image.contentType()))
+                .body(new ByteArrayResource(image.bytes()));
     }
 
     private SenderType parseSenderType(String value) {
