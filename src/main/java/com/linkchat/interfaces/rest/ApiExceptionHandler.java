@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -65,6 +67,12 @@ public class ApiExceptionHandler {
     ResponseEntity<ApiError> handleStorage(StorageException exception, HttpServletRequest request) {
         log.error("Storage operation failed. path={}", request.getRequestURI(), exception);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_ERROR", "Image storage failed", request, Map.of());
+    }
+
+    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
+    ResponseEntity<ApiError> handleUnmappedRoute(Exception exception, HttpServletRequest request) {
+        log.warn("No route found. path={}", request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", "Endpoint not found", request, Map.of());
     }
 
     @ExceptionHandler(Exception.class)
