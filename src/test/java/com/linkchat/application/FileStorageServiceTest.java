@@ -19,7 +19,7 @@ class FileStorageServiceTest {
         var file = new MockMultipartFile("images", "avatar.jpg", "image/jpeg", new byte[]{1, 2, 3});
         String key = storage.store(file);
         assertThat(key).isNotBlank();
-        verify(jdbc).update(contains("INSERT INTO image_blob"), eq(key), eq("image/jpeg"), aryEq(new byte[]{1, 2, 3}));
+        verify(jdbc).update(contains("INSERT INTO image_blob"), eq(key), eq("image/jpeg"), eq(new byte[]{1, 2, 3}));
     }
 
     @Test
