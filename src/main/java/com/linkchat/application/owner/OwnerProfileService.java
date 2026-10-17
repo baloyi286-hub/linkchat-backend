@@ -17,6 +17,15 @@ import org.springframework.stereotype.Service; import org.springframework.transa
   images.save(new OwnerImage(a.getId(),url,"profile-image","image/*"));
   return view(a);
  }
+ @Transactional public ProfileView removeImage(String subject,String url){
+  Account account=owner(subject);
+  if(url==null||url.isBlank())throw new BusinessRuleException("Image URL is required");
+  OwnerImage image=images.findByOwnerId(account.getId()).stream()
+    .filter(item->url.equals(item.getStorageKey())||url.equals("/api/images/"+item.getStorageKey()))
+    .findFirst().orElseThrow(()->new ResourceNotFoundException("Image not found on your profile"));
+  images.delete(image);
+  return view(account);
+ }
  @Transactional(readOnly=true) public ProfileView publicProfile(String code){return view(accounts.findByInviteCode(code).orElseThrow(()->new ResourceNotFoundException("Invite link not found")));}
  private Account owner(String s){return accounts.findByAuthSubject(s).orElseThrow(()->new ResourceNotFoundException("Owner profile not created yet"));}
  private ProfileView view(Account a){return new ProfileView(a.getId(),a.getDisplayName(),a.getInviteCode(),a.getChatPrice(),images.findByOwnerId(a.getId()).stream().map(x->x.getStorageKey().startsWith("https://")?x.getStorageKey():"/api/images/"+x.getStorageKey()).toList());}

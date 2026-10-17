@@ -22,6 +22,7 @@ public class OwnerController {
     public record BlobImageRequest(String url){}
 
     @PostMapping("/profile/images") public OwnerProfileService.ProfileView addImage(@AuthenticationPrincipal Jwt jwt,@RequestBody BlobImageRequest request){return profiles.addBlobImage(jwt.getSubject(),request.url());}
+    @DeleteMapping("/profile/images") public OwnerProfileService.ProfileView removeImage(@AuthenticationPrincipal Jwt jwt,@RequestBody BlobImageRequest request){return profiles.removeImage(jwt.getSubject(),request.url());}
     @GetMapping("/profile") public OwnerProfileService.ProfileView profile(@AuthenticationPrincipal Jwt jwt){return profiles.profile(jwt.getSubject());}
     @PostMapping(value="/profile",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) public OwnerProfileService.ProfileView updateProfile(@AuthenticationPrincipal Jwt jwt,@RequestPart BigDecimal chatPrice,@RequestPart(required=false) List<MultipartFile> images,@RequestParam(defaultValue="false") boolean replaceImages){return profiles.update(jwt.getSubject(),chatPrice,images,replaceImages);}
     @GetMapping public OwnerAccountService.OwnerView me(@AuthenticationPrincipal Jwt jwt){return owners.me(jwt.getSubject());}
